@@ -21,7 +21,7 @@ def main():
 
     print("Loading all detected objects in dataset...")
 
-    train_path = os.path.abspath(os.path.dirname(__file__)) + '/Kitti/training'
+    train_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),'Kitti','training')
     dataset = Dataset(train_path)
 
     params = {'batch_size': batch_size,

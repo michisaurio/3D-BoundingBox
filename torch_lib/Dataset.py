@@ -24,9 +24,9 @@ def generate_bins(bins):
 class Dataset(data.Dataset):
     def __init__(self, path, bins=2, overlap=0.1):
 
-        self.top_label_path = path + "/label_2/"
-        self.top_img_path = path + "/image_2/"
-        self.top_calib_path = path + "/calib/"
+        self.top_label_path = os.path.join(path, 'label_2')
+        self.top_img_path = os.path.join(path, 'image_2')
+        self.top_calib_path = os.path.join(path, 'calib')
         # use a relative path instead?
 
         # TODO: which camera cal to use, per frame or global one?
@@ -82,7 +82,7 @@ class Dataset(data.Dataset):
 
         if id != self.curr_id:
             self.curr_id = id
-            self.curr_img = cv2.imread(self.top_img_path + '%s.png'%id)
+            self.curr_img = cv2.imread(os.path.join(self.top_img_path, '%s.png'%id))
 
         label = self.labels[id][str(line_num)]
         # P doesn't matter here
@@ -96,7 +96,7 @@ class Dataset(data.Dataset):
     def get_objects(self, ids):
         objects = []
         for id in ids:
-            with open(self.top_label_path + '%s.txt'%id) as file:
+            with open(os.path.join(self.top_label_path, '%s.txt'%id)) as file:
                 for line_num,line in enumerate(file):
                     line = line[:-1].split(' ')
                     obj_class = line[0]
@@ -114,7 +114,7 @@ class Dataset(data.Dataset):
 
 
     def get_label(self, id, line_num):
-        lines = open(self.top_label_path + '%s.txt'%id).read().splitlines()
+        lines = open(os.path.join(self.top_label_path, '%s.txt'%id)).read().splitlines()
         label = self.format_label(lines[line_num])
 
         return label
@@ -219,12 +219,12 @@ class Dataset(data.Dataset):
         data = {}
         for id in self.ids:
             data[id] = {}
-            img_path = self.top_img_path + '%s.png'%id
+            img_path = os.path.join(self.top_img_path, '%s.png'%id)
             img = cv2.imread(img_path)
             data[id]['Image'] = img
 
             # using p per frame
-            calib_path = self.top_calib_path + '%s.txt'%id
+            calib_path = os.path.join(self.top_calib_path, '%s.txt'%id)
             proj_matrix = get_calibration_cam_to_image(calib_path)
 
             # using P_rect from global calib file
@@ -232,7 +232,7 @@ class Dataset(data.Dataset):
 
             data[id]['Calib'] = proj_matrix
 
-            label_path = self.top_label_path + '%s.txt'%id
+            label_path = os.path.join(self.top_label_path, '%s.txt'%id)
             labels = self.parse_label(label_path)
             objects = []
             for label in labels:
