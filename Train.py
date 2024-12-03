@@ -21,7 +21,7 @@ def main():
 
     print("Loading all detected objects in dataset...")
 
-    train_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),'Kitti','training')
+    train_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'Kitti', 'training')
     dataset = Dataset(train_path)
 
     params = {'batch_size': batch_size,
@@ -73,7 +73,7 @@ def main():
             truth_conf = local_labels['Confidence'].long().cuda()
             truth_dim = local_labels['Dimensions'].float().cuda()
 
-            local_batch=local_batch.float().cuda()
+            local_batch = local_batch.float().cuda()
             [orient, conf, dim] = model(local_batch)
 
             orient_loss = orient_loss_func(orient, truth_orient, truth_conf)
@@ -101,8 +101,8 @@ def main():
         if epoch % 10 == 0:
             name = model_path + 'epoch_%s.pkl' % epoch
             print("====================")
-            print ("Done with epoch %s!" % epoch)
-            print ("Saving weights as %s ..." % name)
+            print("Done with epoch %s!" % epoch)
+            print("Saving weights as %s ..." % name)
             torch.save({
                     'epoch': epoch,
                     'model_state_dict': model.state_dict(),

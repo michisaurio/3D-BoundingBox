@@ -6,7 +6,6 @@ Uses YOLO to obtain 2D box, PyTorch to get 3D box, plots both
 SPACE bar for next image, any other key to exit
 """
 
-
 from torch_lib.Dataset import *
 from library.Math import *
 from library.Plotting import *
@@ -22,7 +21,7 @@ import cv2
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-from torchvision.models import vgg
+from torchvision.models import vgg, VGG19_BN_Weights
 
 import argparse
 
@@ -75,26 +74,27 @@ def main():
 
     FLAGS = parser.parse_args()
 
-    # load torch
-    weights_path = os.path.abspath(os.path.dirname(__file__)) + '/weights'
+    # load torch and load previous model. TODO: must improve at least the way the last epoch data is loaded
+    weights_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'weights')
     model_lst = [x for x in sorted(os.listdir(weights_path)) if x.endswith('.pkl')]
     if len(model_lst) == 0:
         print('No previous model found, please train first!')
         exit()
     else:
         print('Using previous model %s'%model_lst[-1])
-        my_vgg = vgg.vgg19_bn(pretrained=True)
+        my_vgg = vgg.vgg19_bn(weights=VGG19_BN_Weights.DEFAULT)
         # TODO: load bins from file or something
         model = Model.Model(features=my_vgg.features, bins=2).cuda()
-        checkpoint = torch.load(weights_path + '/%s'%model_lst[-1])
+        last_model_path = os.path.join(weights_path, '%s'%model_lst[-1])
+        checkpoint = torch.load(last_model_path, weights_only=True)
         model.load_state_dict(checkpoint['model_state_dict'])
         model.eval()
 
     # load yolo
-    yolo_path = os.path.abspath(os.path.dirname(__file__)) + '/weights'
+    yolo_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'weights')
     yolo = cv_Yolo(yolo_path)
 
-    averages = ClassAverages.ClassAverages()
+    averages = ClassAverages.ClassAverages() #TODO: What is this?
 
     # TODO: clean up how this is done. flag?
     angle_bins = generate_bins(2)
