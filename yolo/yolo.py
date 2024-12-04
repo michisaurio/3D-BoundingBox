@@ -37,7 +37,7 @@ class cv_Yolo:
         self.net = cv2.dnn.readNetFromDarknet(cfg_path, weights_path)
         self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
 
-    def detect(self, image):
+    def get_detections(self, image):
 
         (H, W) = image.shape[:2]
 
@@ -47,6 +47,7 @@ class cv_Yolo:
         self.net.setInput(blob)
         outputs = self.net.forward(output_layer_name)
 
+        # detections is list of instances of class Detection
         detections = []
         boxes = []
         confidences = []
@@ -95,6 +96,10 @@ class cv_Yolo:
         return self.labels[class_label_id]
 
 class Detection:
+    # box_2d is list of 2 corner coordinates (tuples)
+    # box_2d[0] is top left corner
+    # box_2d[1] is bottom right corner
+    # class_label is string
     def __init__(self, box_2d, class_label):
         self.box_2d = box_2d
         self.detected_class = class_label
