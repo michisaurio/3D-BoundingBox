@@ -1,8 +1,7 @@
 """
-Will use opencv's built in darknet api to do 2D object detection which will
-then get passed into the torch net
+Opencv's built in darknet api is used for 2D object detection
+Result is passed into the torch net
 
-source: https://www.pyimagesearch.com/2018/11/12/yolo-object-detection-with-opencv/
 source: https://opencv-tutorial.readthedocs.io/en/latest/yolo/yolo.html
 """
 
@@ -13,6 +12,9 @@ import os
 class cv_Yolo:
 
     def __init__(self, yolo_path, confidence=0.5, threshold=0.3):
+        # confidence is a lower bound on class confidence
+        # threshold is for non-maximum suppression (NMS) on the boxes according to their intersection-over-union (IoU).
+        # NMS iteratively removes lower scoring boxes which have an IoU greater than threshold value with another (higher scoring) box.
 
         self.confidence = confidence
         self.threshold = threshold
@@ -43,39 +45,34 @@ class cv_Yolo:
         output_layer_name = self.net.getUnconnectedOutLayersNames()
         blob = cv2.dnn.blobFromImage(image, 1/255.0, (416, 416), swapRB=True, crop=False)
         self.net.setInput(blob)
-        output = self.net.forward(output_layer_name)
+        outputs = self.net.forward(output_layer_name)
 
         detections = []
         boxes = []
         confidences = []
         class_ids = []
 
-        for op in output:
-            for detection in op:
-                # detection is a 85 vector. 4 first give bounding box dimensions. 5th is box confidence. Rest is class confidence
+        for output in outputs:
+            for detection in output:
+                # detection is a 85 vector.
+                # first 4 give bounding box dimensions. 5th is box confidence. Rest is class confidence scores
                 scores = detection[5:]
                 class_id = np.argmax(scores)
                 confidence = scores[class_id]
-
                 if confidence > self.confidence:
 
                     box = detection[0:4] * np.array([W, H, W, H])
                     (centerX, centerY, width, height) = box.astype("int")
-
-                    # use the center (x, y)-coordinates to derive the top and
-                    # and left corner of the bounding box
+                    # use the center (x, y)-coordinates to derive the top and left corner of the bounding box
                     x = int(centerX - (width / 2))
                     y = int(centerY - (height / 2))
 
-                    # update our list of bounding box coordinates, confidences,
-                    # and class IDs
-
+                    # update our list of bounding box coordinates, confidences and class IDs
                     boxes.append([x, y, int(width), int(height)])
                     confidences.append(float(confidence))
                     class_ids.append(class_id)
 
-
-
+        # non-maximum suppression (NMS) on the boxes according to their intersection-over-union (IoU)
         idxs = cv2.dnn.NMSBoxes(boxes, confidences, self.confidence, self.threshold)
 
         if len(idxs) > 0:
@@ -83,22 +80,21 @@ class cv_Yolo:
 
                 top_left = (boxes[i][0], boxes[i][1])
                 bottom_right = (top_left[0] + boxes[i][2], top_left[1] + boxes[i][3])
-
                 box_2d = [top_left, bottom_right]
-                class_ = self.get_class(class_ids[i])
-                if class_ == "person":
-                    class_ = "pedestrian"
 
-                detections.append(Detection(box_2d, class_))
+                class_label = self.get_class(class_ids[i])
+                if class_label == "person":
+                    class_label = "pedestrian"
+
+                detections.append(Detection(box_2d, class_label))
 
         return detections
 
-    def get_class(self, class_id):
-        return self.labels[class_id]
-
-
+    # TODO: is get_class used more than once? If not, consider to eliminate
+    def get_class(self, class_label_id):
+        return self.labels[class_label_id]
 
 class Detection:
-    def __init__(self, box_2d, class_):
+    def __init__(self, box_2d, class_label):
         self.box_2d = box_2d
-        self.detected_class = class_
+        self.detected_class = class_label
