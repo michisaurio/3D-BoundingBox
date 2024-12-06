@@ -14,13 +14,14 @@ def OrientationLoss(orient_batch, orientGT_batch, confGT_batch):
     orientGT_batch = orientGT_batch[torch.arange(batch_size), indexes]
     orient_batch = orient_batch[torch.arange(batch_size), indexes]
 
-    theta_diff = torch.atan2(orientGT_batch[:,1], orientGT_batch[:,0])
-    estimated_theta_diff = torch.atan2(orient_batch[:,1], orient_batch[:,0])
+    theta_diff = torch.atan2(orientGT_batch[:, 1], orientGT_batch[:, 0])
+    estimated_theta_diff = torch.atan2(orient_batch[:, 1], orient_batch[:, 0])
 
     return -1 * torch.cos(theta_diff - estimated_theta_diff).mean()
 
+
 class Model(nn.Module):
-    def __init__(self, features=None, bins=2, w = 0.4):
+    def __init__(self, features=None, bins=2, w=0.4):
         super(Model, self).__init__()
         self.bins = bins
         self.w = w

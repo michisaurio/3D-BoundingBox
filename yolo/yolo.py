@@ -11,10 +11,13 @@ import os
 
 class cv_Yolo:
 
-    def __init__(self, yolo_path, confidence=0.5, threshold=0.3):
+    def __init__(self, yolo_path='default', confidence=0.5, threshold=0.3):
         # confidence is a lower bound on class confidence
         # threshold is for non-maximum suppression (NMS) on the boxes according to their intersection-over-union (IoU).
         # NMS iteratively removes lower scoring boxes which have an IoU greater than threshold value with another (higher scoring) box.
+
+        yolo_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'weights')
+
 
         self.confidence = confidence
         self.threshold = threshold

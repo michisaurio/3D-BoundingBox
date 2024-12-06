@@ -15,7 +15,7 @@ import time
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-from torchvision.models import vgg
+from torchvision.models import vgg, VGG19_BN_Weights
 import numpy as np
 
 # to run car by car
@@ -42,9 +42,9 @@ def main():
         exit()
     else:
         print ('Using previous model %s'%model_lst[-1])
-        my_vgg = vgg.vgg19_bn(pretrained=True)
+        my_vgg = vgg.vgg19_bn(weights=VGG19_BN_Weights.DEFAULT)
         model = Model.Model(features=my_vgg.features, bins=2).cuda()
-        checkpoint = torch.load(weights_path + '/%s'%model_lst[-1])
+        checkpoint = torch.load(weights_path + '/%s'%model_lst[-1], weights_only=True)
         model.load_state_dict(checkpoint['model_state_dict'])
         model.eval()
 

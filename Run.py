@@ -92,21 +92,19 @@ def main():
 
     # load yolo
     yolo_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'weights')
-    yolo = cv_Yolo(yolo_path)
+    yolo = cv_Yolo(yolo_path, confidence=0.5, threshold=0.3)
 
-    averages = ClassAverages.ClassAverages() #TODO: What is this?
+    averages = ClassAverages.ClassAverages() #TODO: We are only interested in one class. Recycle
 
-    # TODO: clean up how this is done. flag?
-    angle_bins = generate_bins(2)
+    angle_bins = generate_bins(2) # TODO: clean up definition of bins
 
+    # TODO: clean up how flags are handled
     image_dir = FLAGS.image_dir
     cal_dir = FLAGS.cal_dir
     if FLAGS.video:
         if FLAGS.image_dir == "eval/image_2/" and FLAGS.cal_dir == "camera_cal/":
             image_dir = "eval/video/2011_09_26/image_2/"
             cal_dir = "eval/video/2011_09_26/"
-
-
     img_path = os.path.abspath(os.path.dirname(__file__)) + "/" + image_dir
     # using P_rect from global calibration file
     calib_path = os.path.abspath(os.path.dirname(__file__)) + "/" + cal_dir
@@ -134,11 +132,11 @@ def main():
         img = np.copy(truth_img)
         yolo_img = np.copy(truth_img)
 
-        detections = yolo.detect(yolo_img)
+        detections = yolo.get_detections(yolo_img)
 
         for detection in detections:
 
-            if not averages.recognized_class(detection.detected_class):
+            if not averages.recognized_class(detection.detected_class): #TODO: in our case, we are only interested in class_label "boat"
                 continue
 
             # this is throwing when the 2d bbox is invalid
@@ -154,8 +152,8 @@ def main():
             box_2d = detection.box_2d
             detected_class = detection.detected_class
 
-            input_tensor = torch.zeros([1,3,224,224]).cuda()
-            input_tensor[0,:,:,:] = input_img
+            input_tensor = torch.zeros([1, 3, 224, 224]).cuda()
+            input_tensor[0, :, :, :] = input_img
 
             [orient, conf, dim] = model(input_tensor)
             orient = orient.cpu().data.numpy()[0, :, :]
@@ -170,7 +168,7 @@ def main():
             sin = orient[1]
             alpha = np.arctan2(sin, cos)
             alpha += angle_bins[argmax]
-            alpha -= np.pi
+            alpha -= np.pi # TODO:?
 
             if FLAGS.show_yolo:
                 location = plot_regressed_3d_bbox(img, proj_matrix, box_2d, dim, alpha, theta_ray, truth_img)

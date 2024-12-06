@@ -15,7 +15,7 @@ from .ClassAverages import ClassAverages
 def generate_bins(bins):
     angle_bins = np.zeros(bins)
     interval = 2 * np.pi / bins
-    for i in range(1,bins):
+    for i in range(1, bins):
         angle_bins[i] = i * interval
     angle_bins += interval / 2 # center of the bin
 
@@ -35,11 +35,12 @@ class Dataset(data.Dataset):
         self.ids = [x.split('.')[0] for x in sorted(os.listdir(self.top_img_path))] # name of file
         self.num_images = len(self.ids)
 
+        # TODO: Code repetition
         # create angle bins
         self.bins = bins
         self.angle_bins = np.zeros(bins)
         self.interval = 2 * np.pi / bins
-        for i in range(1,bins):
+        for i in range(1, bins):
             self.angle_bins[i] = i * self.interval
         self.angle_bins += self.interval / 2 # center of the bin
 
@@ -47,7 +48,7 @@ class Dataset(data.Dataset):
         # ranges for confidence
         # [(min angle in bin, max angle in bin), ... ]
         self.bin_ranges = []
-        for i in range(0,bins):
+        for i in range(0, bins):
             self.bin_ranges.append(( (i*self.interval - overlap) % (2*np.pi), \
                                 (i*self.interval + self.interval + overlap) % (2*np.pi)) )
 
@@ -97,7 +98,7 @@ class Dataset(data.Dataset):
         objects = []
         for id in ids:
             with open(os.path.join(self.top_label_path, '%s.txt'%id)) as file:
-                for line_num,line in enumerate(file):
+                for line_num, line in enumerate(file):
                     line = line[:-1].split(' ')
                     obj_class = line[0]
                     if obj_class == "DontCare":

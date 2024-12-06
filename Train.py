@@ -1,13 +1,11 @@
 from torch_lib.Dataset import *
 from torch_lib.Model import Model, OrientationLoss
 
-
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-from torchvision.models import vgg
+from torchvision.models import vgg, VGG19_BN_Weights
 from torch.utils import data
-
 
 import os
 
@@ -30,7 +28,7 @@ def main():
 
     generator = data.DataLoader(dataset, **params)
 
-    my_vgg = vgg.vgg19_bn(pretrained=True)
+    my_vgg = vgg.vgg19_bn(weights=VGG19_BN_Weights.DEFAULT)
     model = Model(features=my_vgg.features).cuda()
     opt_SGD = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.9)
     conf_loss_func = nn.CrossEntropyLoss().cuda()
@@ -38,7 +36,7 @@ def main():
     orient_loss_func = OrientationLoss
 
     # load any previous weights
-    model_path = os.path.abspath(os.path.dirname(__file__)) + '/weights/'
+    model_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'weights')
     latest_model = None
     first_epoch = 0
     if not os.path.isdir(model_path):
@@ -51,7 +49,7 @@ def main():
 
 
     if latest_model is not None:
-        checkpoint = torch.load(model_path + latest_model)
+        checkpoint = torch.load(model_path + latest_model, weights_only=True)
         model.load_state_dict(checkpoint['model_state_dict'])
         opt_SGD.load_state_dict(checkpoint['optimizer_state_dict'])
         first_epoch = checkpoint['epoch']
