@@ -92,7 +92,7 @@ def main():
 
     # load yolo
     yolo_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'weights')
-    yolo = cv_Yolo(yolo_path, confidence=0.5, threshold=0.3)
+    yolo = cv_Yolo(confidence=0.5, threshold=0.3)
 
     averages = ClassAverages.ClassAverages() #TODO: We are only interested in one class. Recycle
 

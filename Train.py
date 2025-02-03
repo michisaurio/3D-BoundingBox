@@ -1,3 +1,5 @@
+import numpy as np
+
 from torch_lib.Dataset import *
 from torch_lib.Model import Model, OrientationLoss
 
@@ -16,17 +18,21 @@ def main():
     batch_size = 8
     alpha = 0.6
     w = 0.4
+    num_bins = 8
+    overlap_bins = np.deg2rad(10)
 
     print("Loading all detected objects in dataset...")
 
     train_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'Kitti', 'training')
-    dataset = Dataset(train_path)
+    #train_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'boat images', 'Dataset002')
+
+    dataset = Dataset(train_path, bins=num_bins, overlap=overlap_bins)
 
     params = {'batch_size': batch_size,
               'shuffle': True,
-              'num_workers': 6}
+              'num_workers': 6} #TODO: num workers?
 
-    generator = data.DataLoader(dataset, **params)
+    generator = data.DataLoader(dataset, **params) #TODO: HERE
 
     my_vgg = vgg.vgg19_bn(weights=VGG19_BN_Weights.DEFAULT)
     model = Model(features=my_vgg.features).cuda()
@@ -105,7 +111,9 @@ def main():
                     'epoch': epoch,
                     'model_state_dict': model.state_dict(),
                     'optimizer_state_dict': opt_SGD.state_dict(),
-                    'loss': loss
+                    'loss': loss,
+                    'number_bins': num_bins,
+                    'overlap_bins_rad': overlap_bins
                     }, name)
             print("====================")
 
